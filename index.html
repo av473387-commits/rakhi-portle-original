@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✦ Grand Cyber-Rakhi 3D Portal ✦</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --gold-glow: #ffae00;
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f6ff;
+            --deep-bg: #03010a;
+            --card-glass: rgba(12, 10, 28, 0.92);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            background: var(--deep-bg); 
+            color: #fff; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            perspective: 1200px;
+        }
+
+        canvas#bgCanvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            z-index: 1; 
+            pointer-events: none; 
+            opacity: 0; 
+            transition: opacity 2s ease; 
+        }
+
+        .floating-bg-text {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 2; pointer-events: none;
+            overflow: hidden; display: none;
+        }
+
+        .float-item {
+            position: absolute;
+            font-size: 1.1rem; font-weight: 600;
+            color: rgba(255, 215, 0, 0.25);
+            text-shadow: 0 0 12px rgba(0, 246, 255, 0.4);
+            white-space: nowrap;
+            animation: float3D 10s linear infinite;
+        }
+
+        @keyframes float3D {
+            0% { transform: translateY(105vh) translateZ(-200px) scale(0.6); opacity: 0; }
+            30% { opacity: 0.6; }
+            70% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) translateZ(100px) scale(1.2); opacity: 0; }
+        }
+
+        #startHint {
+            position: absolute;
+            z-index: 50;
+            color: var(--gold);
+            font-size: 1.3rem;
+            letter-spacing: 5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: pulse3D 2s infinite alternate ease-in-out;
+            cursor: pointer;
+            text-shadow: 0 0 20px var(--gold), 0 0 35px var(--neon-pink);
+            text-align: center;
+            padding: 20px;
+        }
+
+        @keyframes pulse3D {
+            0% { opacity: 0.4; transform: scale(0.92) rotateX(10deg); }
+            100% { opacity: 1; transform: scale(1.08) rotateX(-10deg); }
+        }
+
+        .rakhi-stage {
+            position: relative;
+            z-index: 20;
+            width: 380px; height: 380px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; display: none;
+            transform-style: preserve-3d;
+        }
+
+        .thread-container-left, .thread-container-right {
+            position: absolute;
+            width: 220px; height: 30px;
+            opacity: 0;
+            filter: drop-shadow(0 0 12px var(--neon-pink));
+        }
+
+        .mandala-center {
+            position: absolute;
+            width: 190px; height: 190px;
+            opacity: 0;
+            filter: drop-shadow(0 0 35px var(--gold));
+            transform-style: preserve-3d;
+        }
+
+        .assemble-left { animation: convergeLeft 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .assemble-right { animation: convergeRight 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .assemble-center { animation: convergeCenter 2.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s forwards; }
+
+        @keyframes convergeLeft { 
+            0% { transform: translateX(-600px) translateY(-300px) translateZ(-800px) rotate(-720deg) scale(0.1); opacity: 0; } 
+            100% { transform: translateX(-110px) translateY(0) translateZ(0) rotate(0deg) scale(1); opacity: 1; } 
+        }
+        @keyframes convergeRight { 
+            0% { transform: translateX(600px) translateY(300px) translateZ(-800px) rotate(720deg) scale(0.1); opacity: 0; } 
+            100% { transform: translateX(110px) translateY(0) translateZ(0) rotate(0deg) scale(1); opacity: 1; } 
+        }
+        @keyframes convergeCenter { 
+            0% { transform: translateY(-700px) translateZ(-1000px) rotateX(360deg) scale(0.1); opacity: 0; } 
+            100% { transform: translateY(0) translateZ(0) rotateX(0deg) scale(1); opacity: 1; } 
+        }
+
+        .rakhi-stage.ready .mandala-center { 
+            opacity: 1 !important;
+            animation: holdGlow3D 3s ease-in-out infinite alternate !important; 
+        }
+        .rakhi-stage.ready .thread-container-left { opacity: 1 !important; transform: translateX(-110px); }
+        .rakhi-stage.ready .thread-container-right { opacity: 1 !important; transform: translateX(110px); }
+
+        @keyframes holdGlow3D {
+            0% { transform: scale(1) rotate(0deg) rotateY(-10deg); filter: drop-shadow(0 0 25px var(--gold)); }
+            100% { transform: scale(1.08) rotate(15deg) rotateY(10deg); filter: drop-shadow(0 0 55px var(--neon-pink)); }
+        }
+
+        .click-prompt {
+            position: absolute;
+            bottom: -35px;
+            color: var(--neon-cyan);
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            text-shadow: 0 0 15px var(--neon-cyan);
+            animation: floatPrompt 1.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatPrompt {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 30;
+            width: 95%; max-width: 520px;
+            background: var(--card-glass);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1.8px solid rgba(255, 215, 0, 0.5);
+            border-radius: 28px;
+            padding: 30px 20px;
+            box-shadow: 0 0 60px rgba(0, 246, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            display: none; opacity: 0;
+            transform-style: preserve-3d;
+            transform: scale(0.2) translateZ(-800px) rotateY(180deg) rotateX(45deg);
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 1s ease, box-shadow 1s ease;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        .app-container.show {
+            display: block; opacity: 1;
+            transform: scale(1) translateZ(0) rotateY(0deg) rotateX(0deg);
+            animation: floatCardSlow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatCardSlow {
+            0% { transform: translateY(0px) rotateX(0deg); }
+            100% { transform: translateY(-10px) rotateX(3deg); }
+        }
+
+        .app-container.shake { animation: hitShake 0.3s ease-in-out; }
+
+        @keyframes hitShake {
+            0% { transform: scale(1) translate(0,0); }
+            25% { transform: scale(1.03) translate(-8px, 5px); }
+            50% { transform: scale(0.98) translate(8px, -5px); }
+            75% { transform: scale(1.02) translate(-5px, -5px); }
+            100% { transform: scale(1) translate(0,0); }
+        }
+
+        .layer { display: none; position: relative; }
+        .layer.active { display: block; animation: layerUnfold 0.6s ease-out; }
+
+        @keyframes layerUnfold {
+            from { opacity: 0; transform: translateY(30px) rotateX(-20deg) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) rotateX(0deg) scale(1); }
+        }
+
+        h2 { 
+            color: var(--gold); 
+            font-size: 1.35rem; 
+            margin-bottom: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7); 
+        }
+        
+        p { 
+            color: #e1e2e6; 
+            font-size: 0.92rem; 
+            margin-bottom: 18px; 
+            line-height: 1.4; 
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            background: rgba(6, 8, 22, 0.88);
+            border: 1.8px solid var(--neon-cyan);
+            border-radius: 14px;
+            color: var(--neon-cyan);
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            box-shadow: inset 0 0 15px rgba(0, 246, 255, 0.2);
+            transition: 0.3s ease;
+        }
+
+        input:focus { 
+            border-color: var(--gold); 
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); 
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--neon-pink), #800020);
+            border: 1.8px solid var(--gold);
+            border-radius: 14px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.95rem;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .btn:hover { 
+            transform: translateY(-3px) scale(1.02); 
+            box-shadow: 0 0 32px var(--neon-pink); 
+        }
+
+        .ghost-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.95);
+            z-index: 999;
+            flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(12px);
+        }
+        
+        .ghost-face { font-size: 100px; animation: glitch 0.15s infinite; }
+        
+        @keyframes glitch { 
+            0% { transform: translate(4px, 4px); } 
+            50% { transform: translate(-4px, -4px); } 
+            100% { transform: translate(4px, -4px); } 
+        }
+
+        .match-board {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 20px 0;
+            gap: 20px;
+        }
+
+        canvas#threadCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .match-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 46%;
+            z-index: 15;
+        }
+
+        .match-node {
+            background: rgba(18, 20, 42, 0.9);
+            border: 1.5px solid var(--neon-cyan);
+            border-radius: 12px;
+            padding: 12px 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 48px;
+            position: relative;
+            user-select: none;
+        }
+
+        .match-node:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .match-node.selected {
+            border-color: var(--neon-pink);
+            background: rgba(255, 0, 127, 0.25);
+            box-shadow: 0 0 20px var(--neon-pink);
+            transform: scale(1.03);
+        }
+
+        .match-node.matched {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .voucher-card {
+            background: rgba(8, 10, 30, 0.95);
+            border: 2px dashed var(--gold);
+            border-radius: 18px;
+            padding: 20px 15px; margin: 15px 0;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+        }
+        
+        .voucher-code { 
+            font-size: 1.7rem; font-weight: bold; 
+            color: var(--neon-cyan); letter-spacing: 3px; 
+            margin: 8px 0; cursor: pointer;
+            text-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        .redeem-guide {
+            text-align: left;
+            background: rgba(18, 20, 42, 0.7);
+            border: 1px solid rgba(0, 246, 255, 0.3);
+            border-radius: 14px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.88rem;
+        }
+
+        .redeem-guide h4 {
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+        }
+
+        .redeem-guide ol {
+            padding-left: 20px;
+            color: #d1d5db;
+        }
+
+        .redeem-guide li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="rakhi_song.mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="floating-bg-text" id="floatingTextContainer"></div>
+
+    <div id="startHint">✨ Touch Screen To Summon Cyber Rakhi ✨<br><span style="font-size:0.82rem; color:#00f6ff; opacity:0.85; margin-top:8px; display:inline-block;">( रक्षासूत्र जागृत करें )</span></div>
+
+    <div class="rakhi-stage" id="rakhiStage">
+        <div class="thread-container-left" id="tLeft">
+            <svg viewBox="0 0 220 30" width="100%" height="100%">
+                <path d="M0,15 C60,0 160,30 220,15" fill="none" stroke="#ff0055" stroke-width="4"/>
+                <path d="M0,15 C60,30 160,0 220,15" fill="none" stroke="#ffd700" stroke-width="2.5" stroke-dasharray="5,3"/>
+                <circle cx="180" cy="15" r="8" fill="#ffd700" stroke="#fff" stroke-width="2"/>
+                <circle cx="202" cy="15" r="5.5" fill="#ff0055"/>
+            </svg>
+        </div>
+
+        <div class="thread-container-right" id="tRight">
+            <svg viewBox="0 0 220 30" width="100%" height="100%">
+                <path d="M0,15 C60,30 160,0 220,15" fill="none" stroke="#ff0055" stroke-width="4"/>
+                <path d="M0,15 C60,0 160,30 220,15" fill="none" stroke="#ffd700" stroke-width="2.5" stroke-dasharray="5,3"/>
+                <circle cx="40" cy="15" r="8" fill="#ffd700" stroke="#fff" stroke-width="2"/>
+                <circle cx="18" cy="15" r="5.5" fill="#ff0055"/>
+            </svg>
+        </div>
+
+        <div class="mandala-center" id="rCenter">
+            <svg viewBox="0 0 200 200" width="100%" height="100%">
+                <defs>
+                    <radialGradient id="goldGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#fff7a1"/>
+                        <stop offset="50%" stop-color="#ffd700"/>
+                        <stop offset="100%" stop-color="#b38f00"/>
+                    </radialGradient>
+                    <radialGradient id="rubyGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ff4d8d"/>
+                        <stop offset="100%" stop-color="#800020"/>
+                    </radialGradient>
+                </defs>
+                <g fill="url(#goldGrad)" stroke="#800020" stroke-width="1.5">
+                    <circle cx="100" cy="20" r="14"/><circle cx="100" cy="180" r="14"/>
+                    <circle cx="20" cy="100" r="14"/><circle cx="180" cy="100" r="14"/>
+                    <circle cx="43" cy="43" r="14"/><circle cx="157" cy="157" r="14"/>
+                    <circle cx="43" cy="157" r="14"/><circle cx="157" cy="43" r="14"/>
+                </g>
+                <circle cx="100" cy="100" r="62" fill="url(#rubyGrad)" stroke="url(#goldGrad)" stroke-width="4"/>
+                <polygon points="100,55 112,88 145,100 112,112 100,145 88,112 55,100 88,88" fill="url(#goldGrad)"/>
+                <circle cx="100" cy="100" r="16" fill="#ffffff" stroke="#ffd700" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <div class="click-prompt" id="clickPrompt">✦ Tap Rakhi To Open Portal ✦</div>
+    </div>
+
+    <div class="ghost-overlay" id="ghostPopup">
+        <div class="ghost-face">💀</div>
+        <h1 style="color: #ff0055; margin-top: 20px; letter-spacing: 2px;">ACCESS DENIED!</h1>
+        <p style="color: #fff; margin-top: 10px;">गलत जवाब! आपकी नौटंकी पकड़ी गई... दोबारा कोशिश करो 😜</p>
+        <button class="btn" style="width: 220px; background: #ff0055; margin-top: 25px;" onclick="closeGhost()">TRY AGAIN 🔄</button>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        
+        <!-- LAYER 1 -->
+        <div class="layer active" id="layer1">
+            <h2>🔒 Layer 01: Vault Access</h2>
+            <p>साइबर वॉल्ट को अनलॉक करने के लिए 6-Digit पासकोड (242006) दर्ज करें:</p>
+            <input type="password" id="passInput" placeholder="Enter Secret Code">
+            <button class="btn" onclick="checkL1()">UNLOCK PORTAL 🗝️</button>
+        </div>
+
+        <!-- LAYER 2 -->
+        <div class="layer" id="layer2">
+            <h2>🧠 Layer 02: Ego Assessment</h2>
+            <p>Q: ईमानदारी से बताओ, इस घर की सबसे मासूम और सीधी बहन कौन है? 🎭</p>
+            <button class="btn" onclick="nextLayer(3)">A) मैं खुद! (मासूम और सीधी हूँ 😇)</button>
+            <button class="btn" style="margin-bottom: 14px; background: rgba(18,20,42,0.88); border: 1.5px solid var(--neon-pink);" onclick="triggerGhost()">B) तुम! (100% Extreme Pro Max 👑)</button>
+        </div>
+
+        <!-- LAYER 3 -->
+        <div class="layer" id="layer3">
+            <h2>🧩 Layer 03: Mystic Riddle</h2>
+            <p>"रेशम की डोरी, अटूट विश्वास और रक्षा का वादा... इस पवित्र बंधन को क्या कहते हैं?"</p>
+            <input type="text" id="riddleInput" placeholder="उत्तर लिखें (जैसे: Rakhi)...">
+            <button class="btn" onclick="checkL3()">VERIFY ANSWER 🗝️</button>
+        </div>
+
+        <!-- LAYER 4 -->
+        <div class="layer" id="layer4">
+            <h2>🔐 Layer 04: Quantum Cipher</h2>
+            <p>नीचे दिए गए एंक्रिप्टेड कोड को सही शब्द में Decrypt करें:</p>
+            <h1 style="color:var(--gold); letter-spacing:8px; margin-bottom:20px; font-size: 2.2rem; text-shadow: 0 0 18px var(--gold);">K - A - R - I - H</h1>
+            <input type="text" id="cipherInput" placeholder="Unscramble Code...">
+            <button class="btn" onclick="checkL4()">DECRYPT SYSTEM ⚡</button>
+        </div>
+
+        <!-- LAYER 5 -->
+        <div class="layer" id="layer5">
+            <h2>🧵 Layer 05: Tie The Sacred Thread</h2>
+            <p>बाएँ और दाएँ कॉलम पर टैप करके सही जोड़ों को <b>रेशम की डोरी (Thread)</b> से जोड़ें:</p>
+            
+            <div class="match-board" id="matchBoard">
+                <canvas id="threadCanvas"></canvas>
+                
+                <!-- Left Column -->
+                <div class="match-column">
+                    <div class="match-node" data-id="L1" data-target="R2">1. Love (प्यार)</div>
+                    <div class="match-node" data-id="L2" data-target="R5">2. Sister (बहन)</div>
+                    <div class="match-node" data-id="L3" data-target="R1">3. Brother (भाई)</div>
+                    <div class="match-node" data-id="L4" data-target="R3">4. Rakhi Thread (रेशम की डोरी)</div>
+                    <div class="match-node" data-id="L5" data-target="R4">5. Sweets (मिठाई)</div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="match-column">
+                    <div class="match-node" data-id="R1">Protection (सुरक्षा का वादा)</div>
+                    <div class="match-node" data-id="R2">Care (देखभाल)</div>
+                    <div class="match-node" data-id="R3">Sacred Bond (पवित्र बंधन)</div>
+                    <div class="match-node" data-id="R4">Happiness (मिठास और ख़ुशी)</div>
+                    <div class="match-node" data-id="R5">Affection (स्नेह व ममता)</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="checkL5()">VERIFY THREADS 🔓</button>
+        </div>
+
+        <!-- LAYER 6 -->
+        <div class="layer" id="layer6">
+            <h2>💥 Layer 06: Break Vault</h2>
+            <p>Tap the button 5 times to break the security system!</p>
+            <h3 id="sealStatus" style="color:var(--gold); margin: 22px 0; font-size: 1.45rem; letter-spacing: 2px;">SYSTEM INTEGRITY: 100%</h3>
+            <button class="btn" onclick="damageSeal()">🔨 STRIKE SYSTEM</button>
+        </div>
+
+        <!-- LAYER 7 -->
+        <div class="layer" id="layer7">
+            <h2>🌸 HAPPY RAKSHABANDHAN 🌸</h2>
+            <p>🎉 मुबारक हो! आपने सफलतापूर्वक सभी सिक्योरिटी लेयर्स पार कर ली हैं।</p>
+            
+            <div class="voucher-card">
+                <p style="color:var(--gold); font-weight:bold; margin-bottom:4px; letter-spacing: 1px;">🎁 YOUR FLIPKART GIFT VOUCHER</p>
+                <div class="voucher-code" onclick="copyCode()" title="Click to Copy">FK-RAKHI-800</div>
+                <p style="font-size:0.85rem; color:#a29bfe; margin-bottom:0;">PIN: 242006 | Range: ₹500 - ₹800</p>
+            </div>
+
+            <div class="redeem-guide">
+                <h4>📌 Gift Voucher Use करने का तरीका:</h4>
+                <ol>
+                    <li>Flipkart App खोलें और <b>Account ➔ Saved Cards & Wallet</b> में जाएं।</li>
+                    <li><b>Add Flipkart Gift Card</b> पर टैप करें।</li>
+                    <li>ऊपर दिया गया Voucher Number और PIN डालें और Balance जोड़ें!</li>
+                </ol>
+            </div>
+
+            <!-- YouTube Safe Clickable Button (Error 153 Fixed) -->
+            <p style="color: var(--neon-cyan); font-weight: bold; margin-top: 15px; margin-bottom: 5px;">🎥 ट्यूटोरियल देखें (How to Use Gift Card):</p>
+            <div style="text-align: center; margin: 15px 0;">
+                <a href="https://youtu.be/x-RIyj6oRmg" target="_blank" style="display: block; position: relative; border-radius: 14px; overflow: hidden; border: 1.5px solid var(--neon-pink); box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); text-decoration: none; background: #000;">
+                    <img src="https://img.youtube.com/vi/x-RIyj6oRmg/hqdefault.jpg" alt="Watch on YouTube" style="width: 100%; display: block; opacity: 0.85;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 0 15px rgba(255,0,0,0.8);">
+                        ▶ Watch on YouTube
+                    </div>
+                </a>
+            </div>
+
+            <button class="btn" style="background: #2874f0; border-color: #fff; margin-top: 10px;" onclick="openFlipkart()">🛒 CLAIM RAKHI GIFTS FOR SISTER (₹500 - ₹800)</button>
+        </div>
+    </div>
+
+    <script>
+        let isStarted = false;
+        let rakhiAssembled = false;
+
+        const floatingWords = ["प्यार 💖", "सुरक्षा 🛡️", "रक्षाबंधन ✨", "खुशियाँ 🌸", "अटूट रिश्ता 💫", "Happy Rakhi 🎁", "स्नेह 🌺"];
+        function initFloatingText() {
+            const container = document.getElementById('floatingTextContainer');
+            container.style.display = 'block';
+            for (let i = 0; i < 20; i++) {
+                const item = document.createElement('div');
+                item.className = 'float-item';
+                item.innerText = floatingWords[Math.floor(Math.random() * floatingWords.length)];
+                item.style.left = `${Math.random() * 90}%`;
+                item.style.animationDelay = `${Math.random() * 8}s`;
+                item.style.animationDuration = `${8 + Math.random() * 6}s`;
+                container.appendChild(item);
+            }
+        }
+
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        const icons = ["🌸", "🌺", "✨", "💫", "🌼", "💖"];
+
+        for(let i = 0; i < 65; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 18 + 10,
+                vy: Math.random() * -1.4 - 0.4,
+                icon: icons[Math.floor(Math.random() * icons.length)],
+                opacity: Math.random() * 0.7 + 0.3
+            });
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y += p.vy;
+                if(p.y < -30) p.y = canvas.height + 20;
+                ctx.font = `${p.size}px serif`;
+                ctx.globalAlpha = p.opacity;
+                ctx.fillText(p.icon, p.x, p.y);
+            });
+            requestAnimationFrame(renderCanvas);
+        }
+
+        document.body.addEventListener('click', function() {
+            if(!isStarted) {
+                isStarted = true;
+                
+                let audio = document.getElementById('bgMusic');
+                audio.play().catch(e => console.log('Audio Autoplay Blocked:', e));
+
+                document.getElementById('startHint').style.display = 'none';
+                canvas.style.opacity = '1';
+                renderCanvas();
+                initFloatingText();
+
+                const stage = document.getElementById('rakhiStage');
+                stage.style.display = 'flex';
+
+                document.getElementById('tLeft').classList.add('assemble-left');
+                document.getElementById('tRight').classList.add('assemble-right');
+                document.getElementById('rCenter').classList.add('assemble-center');
+
+                setTimeout(() => {
+                    stage.classList.add('ready');
+                    document.getElementById('clickPrompt').style.opacity = '1';
+                    rakhiAssembled = true;
+                }, 2400);
+            }
+        });
+
+        document.getElementById('rakhiStage').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if(rakhiAssembled) {
+                this.style.transform = 'scale(0) rotateY(720deg)';
+                this.style.transition = '0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+                setTimeout(() => {
+                    this.style.display = 'none';
+                    document.getElementById('appContainer').classList.add('show');
+                }, 600);
+            }
+        });
+
+        function nextLayer(num) {
+            document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+            document.getElementById('layer' + num).classList.add('active');
+            if(num === 5) {
+                setTimeout(resizeThreadCanvas, 100);
+            }
+        }
+
+        function triggerGhost() { document.getElementById('ghostPopup').style.display = 'flex'; }
+        function closeGhost() { document.getElementById('ghostPopup').style.display = 'none'; }
+
+        function checkL1() {
+            if(document.getElementById('passInput').value === '242006') nextLayer(2);
+            else triggerGhost();
+        }
+
+        function checkL3() {
+            let val = document.getElementById('riddleInput').value.trim().toLowerCase();
+            if(['rakhi', 'raksha bandhan', 'thread', 'bond', 'राखी'].includes(val)) nextLayer(4);
+            else triggerGhost();
+        }
+
+        function checkL4() {
+            if(document.getElementById('cipherInput').value.trim().toLowerCase() === 'rakhi') nextLayer(5);
+            else triggerGhost();
+        }
+
+        let selectedLeftNode = null;
+        let userConnections = [];
+
+        const tCanvas = document.getElementById('threadCanvas');
+        const tCtx = tCanvas.getContext('2d');
+
+        function resizeThreadCanvas() {
+            const board = document.getElementById('matchBoard');
+            if(board) {
+                tCanvas.width = board.clientWidth;
+                tCanvas.height = board.clientHeight;
+                drawThreads();
+            }
+        }
+
+        window.addEventListener('resize', resizeThreadCanvas);
+
+        document.querySelectorAll('.match-column .match-node').forEach(node => {
+            node.addEventListener('click', function() {
+                const isLeft = this.dataset.id && this.dataset.id.startsWith('L');
+                
+                if(this.classList.contains('matched')) return;
+
+                if(isLeft) {
+                    document.querySelectorAll('.match-column:first-child .match-node').forEach(n => n.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedLeftNode = this;
+                } else {
+                    if(!selectedLeftNode) return;
+                    
+                    const rightNode = this;
+                    const leftId = selectedLeftNode.dataset.id;
+                    const rightId = rightNode.dataset.id;
+
+                    userConnections = userConnections.filter(c => c.leftId !== leftId && c.rightId !== rightId);
+
+                    userConnections.push({
+                        leftId: leftId,
+                        rightId: rightId,
+                        leftEl: selectedLeftNode,
+                        rightEl: rightNode,
+                        target: selectedLeftNode.dataset.target
+                    });
+
+                    selectedLeftNode.classList.remove('selected');
+                    selectedLeftNode.classList.add('matched');
+                    rightNode.classList.add('matched');
+                    selectedLeftNode = null;
+
+                    drawThreads();
+                }
+            });
+        });
+
+        function drawThreads() {
+            tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height);
+            const boardRect = document.getElementById('matchBoard').getBoundingClientRect();
+
+            userConnections.forEach(conn => {
+                const lRect = conn.leftEl.getBoundingClientRect();
+                const rRect = conn.rightEl.getBoundingClientRect();
+
+                const startX = lRect.right - boardRect.left;
+                const startY = lRect.top + lRect.height / 2 - boardRect.top;
+
+                const endX = rRect.left - boardRect.left;
+                const endY = rRect.top + rRect.height / 2 - boardRect.top;
+
+                tCtx.beginPath();
+                tCtx.moveTo(startX, startY);
+                tCtx.bezierCurveTo(startX + 40, startY, endX - 40, endY, endX, endY);
+                tCtx.strokeStyle = '#ff007f';
+                tCtx.lineWidth = 3.5;
+                tCtx.shadowColor = '#ffd700';
+                tCtx.shadowBlur = 10;
+                tCtx.stroke();
+
+                tCtx.beginPath();
+                tCtx.moveTo(startX, startY);
+                tCtx.bezierCurveTo(startX + 40, startY + 5, endX - 40, endY - 5, endX, endY);
+                tCtx.strokeStyle = '#ffd700';
+                tCtx.lineWidth = 1.5;
+                tCtx.shadowBlur = 0;
+                tCtx.stroke();
+            });
+        }
+
+        function checkL5() {
+            if(userConnections.length < 5) {
+                alert("कृपया पहले सभी 5 जोड़ों को डोरी से कनेक्ट करें!");
+                return;
+            }
+
+            let correctCount = 0;
+            userConnections.forEach(conn => {
+                if(conn.target === conn.rightId) {
+                    correctCount++;
+                }
+            });
+
+            if(correctCount === 5) {
+                nextLayer(6);
+            } else {
+                userConnections = [];
+                document.querySelectorAll('.match-node').forEach(n => {
+                    n.classList.remove('selected', 'matched');
+                });
+                drawThreads();
+                triggerGhost();
+            }
+        }
+
+        let sealClicks = 5;
+        function damageSeal() {
+            sealClicks--;
+            const app = document.getElementById('appContainer');
+            app.classList.add('shake');
+            setTimeout(() => app.classList.remove('shake'), 300);
+
+            if(sealClicks > 0) {
+                document.getElementById('sealStatus').innerText = `SYSTEM INTEGRITY: ${sealClicks * 20}%`;
+            } else {
+                nextLayer(7);
+            }
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText("FK-RAKHI-800");
+            alert("Voucher Code Copied to Clipboard!");
+        }
+
+        function openFlipkart() {
+            window.open("https://www.flipkart.com/search?q=rakhi+gifts+for+sister&p%5B%5D=facets.price_range.from%3D500&p%5B%5D=facets.price_range.to%3D800", "_blank");
+        }
+    </script>
+</body>
+</html>
